@@ -1,67 +1,53 @@
 const express = require('express');
-const fs = require('fs').promises;
-const path = require('path');
+const { createClient } = require('@supabase/supabase-js');
 const app = express();
-const port = 3000;
 
-app.use(express.json());
 app.use(express.static('public'));
+app.use(express.json());
 
-const commentsFile = path.join(__dirname, 'comments.json');
-const drawingsDir = path.join(__dirname, 'public', 'drawings');
-
-async function initialize() {
-    try {
-        await fs.access(commentsFile);
-    } catch {
-        await fs.writeFile(commentsFile, '[]');
-    }
-    try {
-        await fs.access(drawingsDir);
-    } catch {
-        await fs.mkdir(drawingsDir);
-    }
-}
+// Supabase setup
+const supabaseUrl = 'https://xiluolchyuvpizkiyxgk.supabase.co'; 
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpbHVvbGNoeXV2cGl6a2l5eGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMxMDA3OTAsImV4cCI6MjA1ODY3Njc5MH0.6sdvGIsoMZDY5kJ8NOCbbtU8XGFFJNihlRPRKeHLOuE'; 
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 app.get('/comments', async (req, res) => {
-    try {
-        const data = await fs.readFile(commentsFile, 'utf8');
-        res.json(JSON.parse(data));
-    } catch (err) {
-        console.error('Error reading comments:', err);
-        res.status(500).send('Error reading comments');
-    }
+    const { data, error } = await supabase
+        .from('comments')
+        .select('*')
+        .order('id', { ascending: false }); // Newest first
+    if (error) return res.status(500).send('Error fetching comments');
+    res.json(data);
 });
 
 app.post('/comments', async (req, res) => {
-    try {
-        const newEntry = req.body;
-        const data = await fs.readFile(commentsFile, 'utf8');
-        const comments = JSON.parse(data);
-        comments.unshift(newEntry);
-        await fs.writeFile(commentsFile, JSON.stringify(comments, null, 2));
-        res.json(comments);
-    } catch (err) {
-        console.error('Error saving comment:', err);
-        res.status(500).send('Error saving comment');
-    }
+    const { text, drawing, timestamp } = req.body;
+    const { error } = await supabase
+        .from('comments')
+        .insert([{ text, drawing, timestamp }]);
+    if (error) return res.status(500).send('Error saving comment');
+    res.sendStatus(200);
 });
 
 app.post('/drawings', async (req, res) => {
-    try {
-        const { dataUrl, timestamp } = req.body;
-        const base64Data = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
-        const filename = `${timestamp}.jpg`;
-        await fs.writeFile(path.join(drawingsDir, filename), base64Data, 'base64');
-        res.json({ filename });
-    } catch (err) {
-        console.error('Error saving drawing:', err);
-        res.status(500).send('Error saving drawing');
-    }
+    const { dataUrl, timestamp } = req.body;
+    const data = dataUrl.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(data, 'base64');
+    const { error } = await supabase.storage
+        .from('drawings')
+        .upload(`${timestamp}.jpg`, buffer, { contentType: 'image/jpeg' });
+    if (error) return res.status(500).send('Error saving drawing');
+    res.sendStatus(200);
 });
 
-initialize().then(() => {
-    app.listen(port, () => {
-        console.log(`Server running at http://localhost:${port}`);
-    });
+app.post('/upload', async (req, res) => {
+    const { dataUrl, timestamp } = req.body;
+    const data = dataUrl.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(data, 'base64');
+    const { error } = await supabase.storage
+        .from('drawings')
+        .upload(`${timestamp}.jpg`, buffer, { contentType: 'image/jpeg' });
+    if (error) return res.status(500).send('Error saving upload');
+    res.sendStatus(200);
 });
+console.log('woof!');
+app.listen(3000, '0.0.0.0', () => console.log('Server running on port 3000'));
