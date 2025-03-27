@@ -6,6 +6,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>✨ Deprogrammingsocks Guestbook ✨</title>
     <style>
         body {
@@ -21,7 +22,9 @@
             padding: 10px;
             font-family: 'Comic Sans MS', cursive;
             min-height: 100vh;
+            overflow: hidden;
             overflow-x: hidden;
+            touch-action: none;
         }
         #inputContainer {
             position: fixed;
@@ -113,6 +116,7 @@
             margin: 0 auto;
             width: 128px; /* Native resolution */
             height: 128px;
+            touch-action: none;
         }
         #canvasContainer {
             width: auto;
@@ -227,23 +231,23 @@
         let drawing = false;
         let recentColorList = ['#ff69b4'];
         let comments = [];
-    
+
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+
         function playAudio() {
             var audio = document.getElementById('bgMusic');
             audio.loop = true;
             audio.play();
             document.getElementById('teaseButton').style.display = 'none';
         }
-    
+
         async function loadComments() {
             const response = await fetch('/comments');
             comments = await response.json();
             renderComments(comments);
         }
-    
+
         function renderComments(comments) {
             container.innerHTML = '';
             comments.forEach(comment => {
@@ -262,13 +266,13 @@
                 container.appendChild(commentDiv);
             });
         }
-    
+
         function showSentMessage(text) {
             sentMessage.textContent = text;
             sentMessage.style.opacity = '1';
             setTimeout(() => sentMessage.style.opacity = '0', 2000);
         }
-    
+
         function updateRecentColors(color) {
             if (!recentColorList.includes(color)) {
                 recentColorList.unshift(color);
@@ -282,13 +286,13 @@
                 });
             }
         }
-    
+
         async function addComment(text) {
             if (comments.some(comment => comment.text && comment.text.toLowerCase() === text.toLowerCase())) {
                 showSentMessage('Oops, that comment already exists!');
                 return;
             }
-    
+
             const newComment = { text, timestamp: new Date().toLocaleString() };
             const response = await fetch('/comments', {
                 method: 'POST',
@@ -301,7 +305,7 @@
             console.log("Надеюсь, ты наслаждаешься зрелищем...");
             loadComments();
         }
-    
+
         function isCanvasPureWhite() {
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageData.data;
@@ -315,53 +319,56 @@
             }
             return true;
         }
-    
+
         let currentColor = '#ff69b4';
         let currentBrushSize = 4;
-    
+
         colorPicker.addEventListener('change', () => {
             currentColor = colorPicker.value;
             updateRecentColors(currentColor);
         });
-    
+
         brushSize.addEventListener('input', () => {
             currentBrushSize = parseInt(brushSize.value);
         });
-    
+
         canvas.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             drawing = true;
             const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / 3;
-            const y = (e.clientY - rect.top) / 3;
+            const scaleX = canvas.width / rect.width; // Adjust for CSS scaling
+            const scaleY = canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
             ctx.fillStyle = currentColor;
             ctx.fillRect(x, y, currentBrushSize, currentBrushSize);
             canvas.lastX = x;
             canvas.lastY = y;
         });
-    
+
         canvas.addEventListener('pointerup', (e) => {
             e.preventDefault();
             drawing = false;
         });
-    
+
         canvas.addEventListener('pointerleave', (e) => {
             e.preventDefault();
-            drawing = false; // Stop drawing if cursor/pen leaves canvas
+            drawing = false;
         });
-    
+
         canvas.addEventListener('pointercancel', (e) => {
             e.preventDefault();
-            drawing = false; // Handle tablet pen lift-off or interruptions
+            drawing = false;
         });
-    
+
         canvas.addEventListener('pointermove', (e) => {
             e.preventDefault();
             if (!drawing) return;
             const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / 3;
-            const y = (e.clientY - rect.top) / 3;
-            // Only draw if cursor is within canvas bounds
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
             if (x < 0 || x > canvas.width || y < 0 || y > canvas.height) {
                 drawing = false;
                 return;
@@ -378,14 +385,14 @@
             canvas.lastX = x;
             canvas.lastY = y;
         });
-    
+
         submitDrawing.addEventListener('click', async () => {
             try {
                 if (isCanvasPureWhite()) {
                     showSentMessage('Oops, draw something first—canvas is pure white!');
                     return;
                 }
-    
+
                 const timestamp = Date.now();
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                 const drawingResponse = await fetch('/drawings', {
@@ -411,20 +418,20 @@
                 showSentMessage('Oops, failed to send drawing!');
             }
         });
-    
+
         teaseButton.addEventListener('click', () => {
             playAudio();
             commentInputContainer.classList.add('active');
             canvasContainer.classList.add('active');
         });
-    
+
         submitComment.addEventListener('click', async () => {
             if (input.value.trim() !== '') {
                 await addComment(input.value);
                 input.value = '';
             }
         });
-    
+
         loadComments();
     </script>
 </body>
