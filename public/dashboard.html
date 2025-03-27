@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>✨ Tease Dashboard ✨</title>
+    <title>🦴 Dashboard ❤️</title>
     <style>
         body {
             background: repeating-linear-gradient(
@@ -66,9 +66,9 @@
     </style>
 </head>
 <body>
-    <h1>✨ Tease Dashboard ✨</h1>
+    <h1>✨ Dashboard ✨</h1>
     <div id="commentsList"></div>
-    <a id="backLink" href="/">Back to Tease Wall 🌸</a>
+    <a id="backLink" href="/">Back to Wall 🌸</a>
 
     <script>
         const commentsList = document.getElementById('commentsList');
@@ -86,7 +86,7 @@
                 commentDiv.className = 'comment';
                 if (comment.drawing) {
                     const img = document.createElement('img');
-                    img.src = `drawings/${comment.drawing}`;
+                    img.src = `https://xiluolchyuvpizkiyxgk.supabase.co/storage/v1/object/public/drawings/${comment.drawing}`;
                     commentDiv.appendChild(img);
                 } else {
                     commentDiv.appendChild(document.createTextNode(comment.text));
