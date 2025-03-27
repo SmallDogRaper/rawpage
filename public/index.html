@@ -226,7 +226,7 @@
         const audio = document.getElementById('bgMusic');
         let drawing = false;
         let recentColorList = ['#ff69b4'];
-        let comments = []; // Store comments for duplicate checking
+        let comments = [];
     
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -240,7 +240,7 @@
     
         async function loadComments() {
             const response = await fetch('/comments');
-            comments = await response.json(); // Store comments for duplicate check
+            comments = await response.json();
             renderComments(comments);
         }
     
@@ -284,7 +284,6 @@
         }
     
         async function addComment(text) {
-            // Check for duplicate text
             if (comments.some(comment => comment.text && comment.text.toLowerCase() === text.toLowerCase())) {
                 showSentMessage('Oops, that comment already exists!');
                 return;
@@ -303,20 +302,18 @@
             loadComments();
         }
     
-        // Check if canvas is pure white
         function isCanvasPureWhite() {
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data; // RGBA array
+            const data = imageData.data;
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i];
                 const g = data[i + 1];
                 const b = data[i + 2];
-                // If any pixel isn't white (255,255,255), return false
                 if (r !== 255 || g !== 255 || b !== 255) {
                     return false;
                 }
             }
-            return true; // All pixels are white
+            return true;
         }
     
         let currentColor = '#ff69b4';
@@ -342,16 +339,33 @@
             canvas.lastX = x;
             canvas.lastY = y;
         });
+    
         canvas.addEventListener('pointerup', (e) => {
             e.preventDefault();
             drawing = false;
         });
+    
+        canvas.addEventListener('pointerleave', (e) => {
+            e.preventDefault();
+            drawing = false; // Stop drawing if cursor/pen leaves canvas
+        });
+    
+        canvas.addEventListener('pointercancel', (e) => {
+            e.preventDefault();
+            drawing = false; // Handle tablet pen lift-off or interruptions
+        });
+    
         canvas.addEventListener('pointermove', (e) => {
             e.preventDefault();
             if (!drawing) return;
             const rect = canvas.getBoundingClientRect();
             const x = (e.clientX - rect.left) / 3;
             const y = (e.clientY - rect.top) / 3;
+            // Only draw if cursor is within canvas bounds
+            if (x < 0 || x > canvas.width || y < 0 || y > canvas.height) {
+                drawing = false;
+                return;
+            }
             ctx.fillStyle = currentColor;
             ctx.strokeStyle = currentColor;
             ctx.lineWidth = currentBrushSize;
@@ -367,7 +381,6 @@
     
         submitDrawing.addEventListener('click', async () => {
             try {
-                // Check if canvas is pure white
                 if (isCanvasPureWhite()) {
                     showSentMessage('Oops, draw something first—canvas is pure white!');
                     return;
