@@ -246,7 +246,7 @@
                 commentDiv.className = 'comment';
                 if (comment.drawing) {
                     const img = document.createElement('img');
-                    img.src = `https://xiluolchyuvpizkiyxgk.supabase.co/storage/v1/object/public/drawings/${comment.drawing}`; 
+                    img.src = `https://xiluolchyuvpizkiyxgk.supabase.co/storage/v1/object/public/drawings/${comment.drawing}`;
                     commentDiv.appendChild(img);
                 } else {
                     commentDiv.appendChild(document.createTextNode(comment.text));
@@ -280,11 +280,12 @@
     
         async function addComment(text) {
             const newComment = { text, timestamp: new Date().toLocaleString() };
-            await fetch('/comments', {
+            const response = await fetch('/comments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newComment)
             });
+            if (!response.ok) throw new Error('Failed to save comment');
             showSentMessage('harassment sent!');
             loadComments();
         }
@@ -336,22 +337,29 @@
         });
     
         submitDrawing.addEventListener('click', async () => {
-            const timestamp = Date.now();
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-            await fetch('/drawings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ dataUrl, timestamp })
-            });
-            await fetch('/comments', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ drawing: `${timestamp}.jpg`, timestamp: new Date().toLocaleString() })
-            });
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            showSentMessage('drawing sent!');
-            loadComments();
+            try {
+                const timestamp = Date.now();
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                const drawingResponse = await fetch('/drawings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dataUrl, timestamp })
+                });
+                if (!drawingResponse.ok) throw new Error('Failed to upload drawing');
+                const commentResponse = await fetch('/comments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ drawing: `${timestamp}.jpg`, timestamp: new Date().toLocaleString() })
+                });
+                if (!commentResponse.ok) throw new Error('Failed to save drawing comment');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                showSentMessage('drawing sent!');
+                loadComments();
+            } catch (error) {
+                console.error('Drawing submission error:', error.message);
+                showSentMessage('Oops, failed to send drawing!');
+            }
         });
     
         teaseButton.addEventListener('click', () => {
@@ -368,6 +376,6 @@
         });
     
         loadComments();
-    </script>
+</script>
 </body>
 </html>
