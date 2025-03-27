@@ -226,6 +226,7 @@
         const audio = document.getElementById('bgMusic');
         let drawing = false;
         let recentColorList = ['#ff69b4'];
+        let comments = []; // Store comments for duplicate checking
     
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -239,7 +240,7 @@
     
         async function loadComments() {
             const response = await fetch('/comments');
-            const comments = await response.json();
+            comments = await response.json(); // Store comments for duplicate check
             renderComments(comments);
         }
     
@@ -283,6 +284,12 @@
         }
     
         async function addComment(text) {
+            // Check for duplicate text
+            if (comments.some(comment => comment.text && comment.text.toLowerCase() === text.toLowerCase())) {
+                showSentMessage('Oops, that comment already exists!');
+                return;
+            }
+    
             const newComment = { text, timestamp: new Date().toLocaleString() };
             const response = await fetch('/comments', {
                 method: 'POST',
@@ -291,7 +298,25 @@
             });
             if (!response.ok) throw new Error('Failed to save comment');
             showSentMessage('harassment sent!');
+            console.log("Носоченка, что ты там вынюхиваешь?");
+            console.log("Надеюсь, ты наслаждаешься зрелищем...");
             loadComments();
+        }
+    
+        // Check if canvas is pure white
+        function isCanvasPureWhite() {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data; // RGBA array
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                // If any pixel isn't white (255,255,255), return false
+                if (r !== 255 || g !== 255 || b !== 255) {
+                    return false;
+                }
+            }
+            return true; // All pixels are white
         }
     
         let currentColor = '#ff69b4';
@@ -342,6 +367,12 @@
     
         submitDrawing.addEventListener('click', async () => {
             try {
+                // Check if canvas is pure white
+                if (isCanvasPureWhite()) {
+                    showSentMessage('Oops, draw something first—canvas is pure white!');
+                    return;
+                }
+    
                 const timestamp = Date.now();
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                 const drawingResponse = await fetch('/drawings', {
@@ -359,6 +390,8 @@
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 showSentMessage('drawing sent!');
+                console.log("Носоченка, что ты там вынюхиваешь?");
+                console.log("Надеюсь, ты наслаждаешься зрелищем...");
                 loadComments();
             } catch (error) {
                 console.error('Drawing submission error:', error.message);
@@ -380,6 +413,6 @@
         });
     
         loadComments();
-</script>
+    </script>
 </body>
 </html>
