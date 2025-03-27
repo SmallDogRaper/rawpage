@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>✨ Tease Wall ✨</title>
+    <title>✨ Deprogrammingsocks Guestbook ✨</title>
     <style>
         body {
             background: repeating-linear-gradient(
@@ -222,23 +222,23 @@
         const audio = document.getElementById('bgMusic');
         let drawing = false;
         let recentColorList = ['#ff69b4'];
-
+    
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    
         function playAudio() {
             var audio = document.getElementById('bgMusic');
             audio.loop = true;
             audio.play();
             document.getElementById('teaseButton').style.display = 'none';
         }
-
+    
         async function loadComments() {
             const response = await fetch('/comments');
             const comments = await response.json();
             renderComments(comments);
         }
-
+    
         function renderComments(comments) {
             container.innerHTML = '';
             comments.forEach(comment => {
@@ -246,7 +246,7 @@
                 commentDiv.className = 'comment';
                 if (comment.drawing) {
                     const img = document.createElement('img');
-                    img.src = `drawings/${comment.drawing}`;
+                    img.src = `https://xiluolchyuvpizkiyxgk.supabase.co/storage/v1/object/public/drawings/${comment.drawing}`; 
                     commentDiv.appendChild(img);
                 } else {
                     commentDiv.appendChild(document.createTextNode(comment.text));
@@ -257,15 +257,13 @@
                 container.appendChild(commentDiv);
             });
         }
-
+    
         function showSentMessage(text) {
             sentMessage.textContent = text;
             sentMessage.style.opacity = '1';
-            setTimeout(() => {
-                sentMessage.style.opacity = '0';
-            }, 2000);
+            setTimeout(() => sentMessage.style.opacity = '0', 2000);
         }
-
+    
         function updateRecentColors(color) {
             if (!recentColorList.includes(color)) {
                 recentColorList.unshift(color);
@@ -279,7 +277,7 @@
                 });
             }
         }
-
+    
         async function addComment(text) {
             const newComment = { text, timestamp: new Date().toLocaleString() };
             await fetch('/comments', {
@@ -290,36 +288,34 @@
             showSentMessage('harassment sent!');
             loadComments();
         }
-
+    
         let currentColor = '#ff69b4';
         let currentBrushSize = 4;
-
+    
         colorPicker.addEventListener('change', () => {
             currentColor = colorPicker.value;
             updateRecentColors(currentColor);
         });
-
+    
         brushSize.addEventListener('input', () => {
             currentBrushSize = parseInt(brushSize.value);
         });
-
+    
         canvas.addEventListener('pointerdown', (e) => {
-            e.preventDefault(); // Stop scrolling
+            e.preventDefault();
             drawing = true;
             const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / 3; // Adjust for 3x scale
+            const x = (e.clientX - rect.left) / 3;
             const y = (e.clientY - rect.top) / 3;
             ctx.fillStyle = currentColor;
-            ctx.fillRect(x, y, currentBrushSize, currentBrushSize); // Initial dot
+            ctx.fillRect(x, y, currentBrushSize, currentBrushSize);
             canvas.lastX = x;
             canvas.lastY = y;
         });
-
         canvas.addEventListener('pointerup', (e) => {
             e.preventDefault();
             drawing = false;
         });
-
         canvas.addEventListener('pointermove', (e) => {
             e.preventDefault();
             if (!drawing) return;
@@ -338,10 +334,7 @@
             canvas.lastX = x;
             canvas.lastY = y;
         });
-
-        // Ensure canvas doesn't scroll the page
-        canvas.style.touchAction = 'none'; // Add this line after canvas declaration if not already styled
-
+    
         submitDrawing.addEventListener('click', async () => {
             const timestamp = Date.now();
             const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
@@ -360,23 +353,21 @@
             showSentMessage('drawing sent!');
             loadComments();
         });
-
+    
         teaseButton.addEventListener('click', () => {
             playAudio();
             commentInputContainer.classList.add('active');
             canvasContainer.classList.add('active');
         });
-
+    
         submitComment.addEventListener('click', async () => {
             if (input.value.trim() !== '') {
                 await addComment(input.value);
                 input.value = '';
             }
         });
-
+    
         loadComments();
-        console.log("Носоченка, что ты там вынюхиваешь?"); 
-        console.log("Надеюсь, ты наслаждаешься зрелищем...");
     </script>
 </body>
 </html>
