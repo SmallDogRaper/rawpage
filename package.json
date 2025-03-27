@@ -7,10 +7,11 @@
     "start": "node server.js"
   },
   "keywords": [],
-  "author": "grok and fluffy haired retard",
+  "author": "grok and squaddie",
   "license": "FINISH INSIDE ME license",
   "description": "straw page replacement that sucks",
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "@supabase/supabase-js": "^2.45.4"
   }
 }
