@@ -213,7 +213,7 @@
     <div id="commentsContainer"></div>
     <a id="xLink" href="https://x.com/shoddyassertion" target="_blank">Visit @shoddyassertion on X! 🌸</a>
 
-    <script>
+   <script>
         const commentInputContainer = document.getElementById('commentInputContainer');
         const input = document.getElementById('commentInput');
         const submitComment = document.getElementById('submitComment');
@@ -231,23 +231,23 @@
         let drawing = false;
         let recentColorList = ['#ff69b4'];
         let comments = [];
-
+    
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    
         function playAudio() {
             var audio = document.getElementById('bgMusic');
             audio.loop = true;
             audio.play();
             document.getElementById('teaseButton').style.display = 'none';
         }
-
+    
         async function loadComments() {
             const response = await fetch('/comments');
             comments = await response.json();
             renderComments(comments);
         }
-
+    
         function renderComments(comments) {
             container.innerHTML = '';
             comments.forEach(comment => {
@@ -266,13 +266,13 @@
                 container.appendChild(commentDiv);
             });
         }
-
+    
         function showSentMessage(text) {
             sentMessage.textContent = text;
             sentMessage.style.opacity = '1';
             setTimeout(() => sentMessage.style.opacity = '0', 2000);
         }
-
+    
         function updateRecentColors(color) {
             if (!recentColorList.includes(color)) {
                 recentColorList.unshift(color);
@@ -286,13 +286,13 @@
                 });
             }
         }
-
+    
         async function addComment(text) {
             if (comments.some(comment => comment.text && comment.text.toLowerCase() === text.toLowerCase())) {
                 showSentMessage('Oops, that comment already exists!');
                 return;
             }
-
+    
             const newComment = { text, timestamp: new Date().toLocaleString() };
             const response = await fetch('/comments', {
                 method: 'POST',
@@ -305,7 +305,7 @@
             console.log("Надеюсь, ты наслаждаешься зрелищем...");
             loadComments();
         }
-
+    
         function isCanvasPureWhite() {
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageData.data;
@@ -319,24 +319,38 @@
             }
             return true;
         }
-
+    
         let currentColor = '#ff69b4';
         let currentBrushSize = 4;
-
+    
         colorPicker.addEventListener('change', () => {
             currentColor = colorPicker.value;
             updateRecentColors(currentColor);
         });
-
+    
         brushSize.addEventListener('input', () => {
             currentBrushSize = parseInt(brushSize.value);
         });
-
+    
+        // Prevent context menu (right-click/long-press) on canvas
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+    
+        // Prevent touch long-press actions
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+        });
+    
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+        });
+    
         canvas.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             drawing = true;
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width; // Adjust for CSS scaling
+            const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
             const x = (e.clientX - rect.left) * scaleX;
             const y = (e.clientY - rect.top) * scaleY;
@@ -345,22 +359,22 @@
             canvas.lastX = x;
             canvas.lastY = y;
         });
-
+    
         canvas.addEventListener('pointerup', (e) => {
             e.preventDefault();
             drawing = false;
         });
-
+    
         canvas.addEventListener('pointerleave', (e) => {
             e.preventDefault();
             drawing = false;
         });
-
+    
         canvas.addEventListener('pointercancel', (e) => {
             e.preventDefault();
             drawing = false;
         });
-
+    
         canvas.addEventListener('pointermove', (e) => {
             e.preventDefault();
             if (!drawing) return;
@@ -385,14 +399,14 @@
             canvas.lastX = x;
             canvas.lastY = y;
         });
-
+    
         submitDrawing.addEventListener('click', async () => {
             try {
                 if (isCanvasPureWhite()) {
                     showSentMessage('Oops, draw something first—canvas is pure white!');
                     return;
                 }
-
+    
                 const timestamp = Date.now();
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                 const drawingResponse = await fetch('/drawings', {
@@ -418,20 +432,20 @@
                 showSentMessage('Oops, failed to send drawing!');
             }
         });
-
+    
         teaseButton.addEventListener('click', () => {
             playAudio();
             commentInputContainer.classList.add('active');
             canvasContainer.classList.add('active');
         });
-
+    
         submitComment.addEventListener('click', async () => {
             if (input.value.trim() !== '') {
                 await addComment(input.value);
                 input.value = '';
             }
         });
-
+    
         loadComments();
     </script>
 </body>
