@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>✨ Tease Dashboard ✨</title>
+    <style>
+        body {
+            background: repeating-linear-gradient(
+                45deg,
+                #98ffcc,
+                #98ffcc 10px,
+                #b3ffd9 10px,
+                #b3ffd9 20px
+            );
+            color: #000000;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Comic Sans MS', cursive;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+        h1 {
+            text-align: center;
+            color: #ff69b4;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        #commentsList {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .comment {
+            background-color: #fff;
+            border: 1px solid #ff69b4;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            color: #ff69b4;
+            word-wrap: break-word;
+        }
+        .comment img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 10px 0;
+        }
+        small {
+            display: block;
+            margin-top: 5px;
+            opacity: 0.7;
+            font-size: 12px;
+            color: #ff69b4;
+        }
+        #backLink {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff69b4;
+            padding: 10px 20px;
+            border-radius: 15px;
+            text-decoration: none;
+            color: #fff;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>✨ Tease Dashboard ✨</h1>
+    <div id="commentsList"></div>
+    <a id="backLink" href="/">Back to Tease Wall 🌸</a>
+
+    <script>
+        const commentsList = document.getElementById('commentsList');
+
+        async function loadComments() {
+            const response = await fetch('/comments');
+            const comments = await response.json();
+            renderComments(comments);
+        }
+
+        function renderComments(comments) {
+            commentsList.innerHTML = '';
+            comments.forEach(comment => {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'comment';
+                if (comment.drawing) {
+                    const img = document.createElement('img');
+                    img.src = `drawings/${comment.drawing}`;
+                    commentDiv.appendChild(img);
+                } else {
+                    commentDiv.appendChild(document.createTextNode(comment.text));
+                }
+                const timestamp = document.createElement('small');
+                timestamp.textContent = comment.timestamp;
+                commentDiv.appendChild(timestamp);
+                commentsList.appendChild(commentDiv);
+            });
+        }
+
+        loadComments();
+    </script>
+</body>
+</html>

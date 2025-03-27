@@ -1,0 +1,15 @@
+{
+  "name": "rawpage",
+  "version": "15.8.8",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "grok and fluffy haired retard",
+  "license": "FINISH INSIDE ME license",
+  "description": "straw page replacement that sucks",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

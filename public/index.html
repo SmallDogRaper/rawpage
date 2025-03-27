@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>✨ Tease Wall ✨</title>
+    <style>
+        body {
+            background: repeating-linear-gradient(
+                45deg,
+                #98ffcc,
+                #98ffcc 10px,
+                #b3ffd9 10px,
+                #b3ffd9 20px
+            );
+            color: #000000;
+            margin: 0;
+            padding: 10px;
+            font-family: 'Comic Sans MS', cursive;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        #inputContainer {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(3); /* Scale entire container 3x */
+            transform-origin: center center;
+            z-index: 10;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px; /* Smaller gap since scaling will amplify it */
+        }
+        #teaseButton {
+            background: #ff69b4;
+            border: 2px solid #fff;
+            color: #fff;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 15px;
+            transition: all 0.3s;
+        }
+        #teaseButton:hover {
+            background: #ff1493;
+        }
+        #commentInputContainer, #canvasContainer {
+            display: none;
+            background-color: #fff;
+            color: #000;
+            border: 2px solid #ff69b4;
+            padding: 10px;
+            width: 300px;
+            border-radius: 10px;
+        }
+        #commentInputContainer.active, #canvasContainer.active {
+            display: block;
+        }
+        #commentInput {
+            width: 220px;
+            border: none;
+            outline: none;
+            font-family: 'Comic Sans MS', cursive;
+            font-size: 16px;
+        }
+        #submitComment, #submitDrawing {
+            background: #ff69b4;
+            border: none;
+            color: #fff;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-left: 5px;
+        }
+        #commentsContainer {
+            position: relative;
+            column-count: 4;
+            column-gap: 5px;
+        }
+        .comment {
+            background-color: #fff;
+            border: 1px solid #ff69b4;
+            padding: 8px;
+            margin: 5px 0;
+            display: inline-block;
+            max-width: 100%;
+            box-sizing: border-box;
+            border-radius: 5px;
+            break-inside: avoid;
+            color: #ff69b4;
+            word-wrap: break-word;
+        }
+        .comment img {
+            max-width: 100%;
+            height: auto;
+        }
+        small {
+            display: block;
+            margin-top: 5px;
+            opacity: 0.7;
+            font-size: 12px;
+            color: #ff69b4;
+        }
+        #canvas {
+            border: 1px solid #000;
+            background: #fff;
+            display: block;
+            margin: 0 auto;
+            width: 128px; /* Native resolution */
+            height: 128px;
+        }
+        #canvasContainer {
+            width: auto;
+        }
+        #canvasControls {
+            margin-top: 10px;
+            text-align: center;
+        }
+        #brushSize {
+            -webkit-appearance: none;
+            width: 100px;
+            height: 10px;
+            background: #ffb6c1;
+            border-radius: 5px;
+            outline: none;
+            vertical-align: middle;
+        }
+        #brushSize::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M10 2c-4.4 0-8 3.6-8 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm0 14c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6z" fill="%23ff69b4"/><path d="M10 6l2 4h-4l2-4z" fill="%23ff1493"/></svg>') no-repeat center;
+            cursor: pointer;
+        }
+        #colorPicker {
+            width: 40px;
+            height: 20px;
+            padding: 0;
+            border: 1px solid #000;
+            margin: 0 5px;
+            vertical-align: middle;
+        }
+        #recentColors {
+            display: inline-block;
+            vertical-align: middle;
+            pointer-events: none;
+        }
+        .recent-color {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #000;
+            display: inline-block;
+            margin: 0 2px;
+            pointer-events: none;
+        }
+        #sentMessage {
+            position: fixed;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ff69b4;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 11;
+            pointer-events: none; 
+        }
+        
+        #xLink {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff69b4;
+            padding: 10px 20px;
+            border-radius: 15px;
+            text-decoration: none;
+            color: #fff;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <audio id="bgMusic" src="music.mp3" preload="auto"></audio>
+    <div id="inputContainer">
+        <button id="teaseButton">tease deprogrammingsocks today! 💕</button>
+        <div id="commentInputContainer">
+            <input type="text" id="commentInput" maxlength="480" placeholder="Say something mean~ (max 480 chars)">
+            <button id="submitComment">Submit</button>
+        </div>
+        <div id="canvasContainer">
+            <canvas id="canvas" width="128" height="128"></canvas>
+            <div id="canvasControls">
+                <input type="range" id="brushSize" min="1" max="48" value="4">
+                <input type="color" id="colorPicker" value="#ff69b4">
+                <div id="recentColors"></div>
+                <button id="submitDrawing">Submit Drawing</button>
+            </div>
+        </div>
+    </div>
+    <div id="sentMessage"></div>
+    <div id="commentsContainer"></div>
+    <a id="xLink" href="https://x.com/shoddyassertion" target="_blank">Visit @shoddyassertion on X! 🌸</a>
+
+    <script>
+        const commentInputContainer = document.getElementById('commentInputContainer');
+        const input = document.getElementById('commentInput');
+        const submitComment = document.getElementById('submitComment');
+        const container = document.getElementById('commentsContainer');
+        const teaseButton = document.getElementById('teaseButton');
+        const canvasContainer = document.getElementById('canvasContainer');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const submitDrawing = document.getElementById('submitDrawing');
+        const brushSize = document.getElementById('brushSize');
+        const colorPicker = document.getElementById('colorPicker');
+        const recentColors = document.getElementById('recentColors');
+        const sentMessage = document.getElementById('sentMessage');
+        const audio = document.getElementById('bgMusic');
+        let drawing = false;
+        let recentColorList = ['#ff69b4'];
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        function playAudio() {
+            var audio = document.getElementById('bgMusic');
+            audio.loop = true;
+            audio.play();
+            document.getElementById('teaseButton').style.display = 'none';
+        }
+
+        async function loadComments() {
+            const response = await fetch('/comments');
+            const comments = await response.json();
+            renderComments(comments);
+        }
+
+        function renderComments(comments) {
+            container.innerHTML = '';
+            comments.forEach(comment => {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'comment';
+                if (comment.drawing) {
+                    const img = document.createElement('img');
+                    img.src = `drawings/${comment.drawing}`;
+                    commentDiv.appendChild(img);
+                } else {
+                    commentDiv.appendChild(document.createTextNode(comment.text));
+                }
+                const timestamp = document.createElement('small');
+                timestamp.textContent = comment.timestamp;
+                commentDiv.appendChild(timestamp);
+                container.appendChild(commentDiv);
+            });
+        }
+
+        function showSentMessage(text) {
+            sentMessage.textContent = text;
+            sentMessage.style.opacity = '1';
+            setTimeout(() => {
+                sentMessage.style.opacity = '0';
+            }, 2000);
+        }
+
+        function updateRecentColors(color) {
+            if (!recentColorList.includes(color)) {
+                recentColorList.unshift(color);
+                if (recentColorList.length > 5) recentColorList.pop();
+                recentColors.innerHTML = '';
+                recentColorList.forEach(c => {
+                    const span = document.createElement('span');
+                    span.className = 'recent-color';
+                    span.style.backgroundColor = c;
+                    recentColors.appendChild(span);
+                });
+            }
+        }
+
+        async function addComment(text) {
+            const newComment = { text, timestamp: new Date().toLocaleString() };
+            await fetch('/comments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newComment)
+            });
+            showSentMessage('harassment sent!');
+            loadComments();
+        }
+
+        let currentColor = '#ff69b4';
+        let currentBrushSize = 4;
+
+        colorPicker.addEventListener('change', () => {
+            currentColor = colorPicker.value;
+            updateRecentColors(currentColor);
+        });
+
+        brushSize.addEventListener('input', () => {
+            currentBrushSize = parseInt(brushSize.value);
+        });
+
+        canvas.addEventListener('pointerdown', (e) => {
+            e.preventDefault(); // Stop scrolling
+            drawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / 3; // Adjust for 3x scale
+            const y = (e.clientY - rect.top) / 3;
+            ctx.fillStyle = currentColor;
+            ctx.fillRect(x, y, currentBrushSize, currentBrushSize); // Initial dot
+            canvas.lastX = x;
+            canvas.lastY = y;
+        });
+
+        canvas.addEventListener('pointerup', (e) => {
+            e.preventDefault();
+            drawing = false;
+        });
+
+        canvas.addEventListener('pointermove', (e) => {
+            e.preventDefault();
+            if (!drawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / 3;
+            const y = (e.clientY - rect.top) / 3;
+            ctx.fillStyle = currentColor;
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = currentBrushSize;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(canvas.lastX, canvas.lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.closePath();
+            canvas.lastX = x;
+            canvas.lastY = y;
+        });
+
+        // Ensure canvas doesn't scroll the page
+        canvas.style.touchAction = 'none'; // Add this line after canvas declaration if not already styled
+
+        submitDrawing.addEventListener('click', async () => {
+            const timestamp = Date.now();
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            await fetch('/drawings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dataUrl, timestamp })
+            });
+            await fetch('/comments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ drawing: `${timestamp}.jpg`, timestamp: new Date().toLocaleString() })
+            });
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            showSentMessage('drawing sent!');
+            loadComments();
+        });
+
+        teaseButton.addEventListener('click', () => {
+            playAudio();
+            commentInputContainer.classList.add('active');
+            canvasContainer.classList.add('active');
+        });
+
+        submitComment.addEventListener('click', async () => {
+            if (input.value.trim() !== '') {
+                await addComment(input.value);
+                input.value = '';
+            }
+        });
+
+        loadComments();
+        console.log("Носоченка, что ты там вынюхиваешь?"); 
+        console.log("Надеюсь, ты наслаждаешься зрелищем...");
+    </script>
+</body>
+</html>
