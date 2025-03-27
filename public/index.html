@@ -69,7 +69,7 @@
             border: none;
             outline: none;
             font-family: 'Comic Sans MS', cursive;
-            font-size: 16px;
+            font-size: 12px;
         }
         #submitComment, #submitDrawing {
             background: #ff69b4;
@@ -189,6 +189,20 @@
             color: #fff;
             font-size: 16px;
         }
+        #yellowBox {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffff99;
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: center;
+            max-width: 300px;
+            z-index: 9;
+        }
     </style>
 </head>
 <body>
@@ -211,9 +225,28 @@
     </div>
     <div id="sentMessage"></div>
     <div id="commentsContainer"></div>
+    <div id="yellowBox">I think you should have this card, it says the raped. Do you want it? Do you want it? The Raped? Yeah, no?</div>
     <a id="xLink" href="https://x.com/shoddyassertion" target="_blank">Visit @shoddyassertion on X! 🌸</a>
 
    <script>
+        const teaseButtonTexts = [
+            "tease deprogrammingsocks today! 💕",
+            "harass deprogrammingsocks now!",
+            "bully deprogrammingsocks!! 💖",
+            "say nice things to sockies this time? 🌸",
+            "you know why you're here...",
+            "call sockies silly! 🐾",
+            "give sockies a hard time!"
+        ];
+       const commentPlaceholders = [
+            "Say something mean~ (max 480 chars)",
+            "Say something cruel~ (max 480 chars)",
+            "Ask me something! (max 480 chars)",
+            "Be super mean to sockies~ (max 480 chars)",
+            "Say something just awful~ (max 480 chars)",
+            "Make sockies smile! (max 480 chars)",
+            "Sperg about an absurdly niche hobby (max 480 chars)"
+        ];
         const commentInputContainer = document.getElementById('commentInputContainer');
         const input = document.getElementById('commentInput');
         const submitComment = document.getElementById('submitComment');
@@ -234,7 +267,10 @@
     
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+       
+        teaseButton.textContent = teaseButtonTexts[Math.floor(Math.random() * teaseButtonTexts.length)];
+        input.placeholder = commentPlaceholders[Math.floor(Math.random() * commentPlaceholders.length)];
+       
         function playAudio() {
             var audio = document.getElementById('bgMusic');
             audio.loop = true;
