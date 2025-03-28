@@ -88,15 +88,15 @@
 
     <script>
         const commentsList = document.getElementById('commentsList');
-
+    
         async function loadComments() {
             const response = await fetch('/comments');
             const comments = await response.json();
             renderComments(comments);
         }
-
+    
         function renderComments(comments) {
-            container.innerHTML = '';
+            commentsList.innerHTML = ''; // Use commentsList instead of container
             comments.forEach(comment => {
                 const commentDiv = document.createElement('div');
                 commentDiv.className = 'comment';
@@ -118,10 +118,10 @@
                 const timestamp = document.createElement('small');
                 timestamp.textContent = comment.timestamp;
                 commentDiv.appendChild(timestamp);
-                container.appendChild(commentDiv);
+                commentsList.appendChild(commentDiv); // Use commentsList instead of container
             });
         }
-
+    
         loadComments();
     </script>
 </body>
