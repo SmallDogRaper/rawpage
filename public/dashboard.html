@@ -41,6 +41,18 @@
             border-radius: 5px;
             color: #ff69b4;
             word-wrap: break-word;
+            padding-top: 20px; /* Add space for branding */
+            position: relative;
+        }
+
+        .comment .branding {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 10px;
+            color: #ff69b4;
+            opacity: 0.7;
+            font-family: 'Comic Sans MS', cursive;
         }
         .comment img {
             max-width: 100%;
@@ -84,10 +96,18 @@
         }
 
         function renderComments(comments) {
-            commentsList.innerHTML = '';
+            container.innerHTML = '';
             comments.forEach(comment => {
                 const commentDiv = document.createElement('div');
                 commentDiv.className = 'comment';
+                
+                // Add branding label
+                const branding = document.createElement('span');
+                branding.className = 'branding';
+                branding.textContent = 'footrest.dog';
+                commentDiv.appendChild(branding);
+                
+                // Add comment or drawing
                 if (comment.drawing) {
                     const img = document.createElement('img');
                     img.src = `https://xiluolchyuvpizkiyxgk.supabase.co/storage/v1/object/public/drawings/${comment.drawing}`;
@@ -98,7 +118,7 @@
                 const timestamp = document.createElement('small');
                 timestamp.textContent = comment.timestamp;
                 commentDiv.appendChild(timestamp);
-                commentsList.appendChild(commentDiv);
+                container.appendChild(commentDiv);
             });
         }
 
